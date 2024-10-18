@@ -1,8 +1,8 @@
-# DCGAN
-Deep Convolutional Generative Adversarial Network
-# DCGAN for Geometrical Shape Generation
+# Deep Convolutional Generative Adversarial Network
 
-This project implements a Deep Convolutional Generative Adversarial Network (DCGAN) to generate images of geometrical shapes. The model is trained on a black-and-white dataset using PyTorch. This repository contains the training code with modified hyperparameters for improved results.
+# DCGAN for Synthetic Image Generation
+
+This project implements a Deep Convolutional Generative Adversarial Network (DCGAN) to generate synthetic images for variety of datasets. The model is trained on different datasets using PyTorch. This repository contains the training code with modified hyperparameters for improved results.
 
 ## Table of Contents
 - [Overview](#overview)
