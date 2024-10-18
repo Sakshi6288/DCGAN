@@ -1,13 +1,11 @@
-# Deep Convolutional Generative Adversarial Network
+# Generative Adversarial Networks (GANs) Collection
 
-# DCGAN for Synthetic Image Generation
-
-This project implements a Deep Convolutional Generative Adversarial Network (DCGAN) to generate synthetic images for variety of datasets. The model is trained on different datasets using PyTorch. This repository contains the training code with modified hyperparameters for improved results.
+This repository contains implementations of various GAN models applied to diverse datasets, including RGB, thermal, and infrared images. Each GAN is designed to handle different data types, providing flexibility for synthetic image generation tasks across multiple domains.
 
 ## Table of Contents
 - [Overview](#overview)
-- [Dataset](#dataset)
-- [Model Architecture](#model-architecture)
+- [Datasets](#datasets)
+- [GAN Models](#gan-models)
 - [Requirements](#requirements)
 - [Training](#training)
 - [Testing](#testing)
@@ -15,45 +13,37 @@ This project implements a Deep Convolutional Generative Adversarial Network (DCG
 - [References](#references)
 
 ## Overview
-This project focuses on generating black-and-white geometrical shapes using a DCGAN model. The hyperparameters have been tuned for better results, and the repository includes:
-- DCGAN training script
-- Model checkpoints saving mechanism
-- Image generation with pre-trained weights
+This project showcases a collection of GAN architectures trained on different datasets for synthetic image generation. Each file corresponds to a unique GAN model tailored to a specific type of data, such as RGB, thermal, or infrared images. The repository includes:
+- Multiple GAN implementations (DCGAN, WGAN, CycleGAN, WGAN-Divergence, WGAN with Gradient Penalty, MixNMatch, SRGAN etc)
+- Training scripts for different GANs
+- Model checkpoints for each GAN
 
-## Dataset
-The dataset used for this project contains black-and-white images of LEGO geometrical shapes. The images are preprocessed using the following transformations:
-- Grayscale conversion
-- Resizing to 128x128 pixels
-- Normalization with mean and standard deviation of 0.5
+## Datasets
+The GANs are implemented on various datasets with specific preprocessing steps suited to the data type:
+- **RGB**: High-resolution color images with detailed textures.
+- **Thermal**: Images representing heat signatures.
+- **Infrared**: Lower spatial resolution, often used for night vision or non-visible spectrum tasks.
+- **Results**: Here I have attached the drive link for the results of the datasets and GANs that I have used so far- https://docs.google.com/presentation/d/1PJ5nNBFok_bX-F9UvrEm7PTF3w4j3POz/edit?usp=sharing&ouid=111933379389103591948&rtpof=true&sd=true
 
-### Dataset Path
-- Training data: `r"C:\Users\ANNA MANI\Desktop\labels_sakshi\lego_ALL_results\LEGO_data"`
-- Test data: `r"C:\Users\ANNA MANI\LEGOshape\New folder\Black&White_LEGO\train"`
+### Dataset 
+Each dataset used in this project is publicly available and can be downloaded from sources like Kaggle, depending on your needs. Be sure to adjust the dataset paths in the scripts to match your own directory structure for training your model.
 
-## Model Architecture
-The architecture follows the standard DCGAN framework:
-- **Generator**: Takes a random noise vector as input and generates an image.
-- **Discriminator**: Classifies images as real or fake.
+## GAN Models
+The repository includes a variety of GAN architectures:
+- **DCGAN**: Standard model for synthetic image generation using convolutional layers.
+- **WGAN**: Wasserstein GAN for more stable training.
+- **CycleGAN**: Designed for image-to-image translation tasks.
+- **Conditional GANs**: For generating images based on specific conditions or labels.
+- **MixNMatch GAN**: A generative model designed to create diverse and realistic images by combining different features from multiple input images by disentangling features such as background, shape, texture and pose, enabling flexible and customizable image synthesis.
 
-The generator and discriminator weights are initialized using a normal distribution for convolutional layers and batch normalization layers.
+Each GAN architecture has been customized to the dataset it works on, and the generator/discriminator models are tailored to capture the characteristics of the input data.
 
-### Generator
-- Linear layer followed by convolutional blocks with upsampling.
-- Final layer outputs an image using the `Tanh` activation.
-
-### Discriminator
-- Convolutional layers with Leaky ReLU activations and dropout.
-- Final layer outputs the probability of the image being real using a `Sigmoid` activation.
+### Key Model Features
+- **Generator**: Creates synthetic images from random noise or conditional inputs.
+- **Discriminator**: Evaluates the authenticity of generated images against real ones.
+- **Loss Functions**: Tailored loss functions for stable training (e.g., Wasserstein loss, adversarial loss).
 
 ## Requirements
-- Python 3.x
-- PyTorch
-- torchvision
-- numpy
-- tqdm
-- PIL
-- pytorch_fid
+The project relies on common Python libraries and frameworks such as PyTorch. You can install the necessary versions of CUDA, CUDNN and Pytorch according to your requirements.
 
-You can install the required libraries using the following command:
-```bash
-pip install -r requirements.txt
+
