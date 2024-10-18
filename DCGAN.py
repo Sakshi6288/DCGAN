@@ -14,28 +14,25 @@ from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
-from pytorch_fid import fid_score
-import torch.optim as optim
-import torchvision.utils as vutils
-from tqdm import tqdm
 
 os.makedirs("images", exist_ok=True)
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--n_epochs", type=int, default=2, help="number of epochs of training")
+parser.add_argument("--n_epochs", type=int, default=1000, help="number of epochs of training")
 parser.add_argument("--batch_size", type=int, default=128, help="size of the batches")
-parser.add_argument("--lr", type=float, default=0.0002, help="adam: learning rate")
+parser.add_argument("--lr", type=float, default=0.0001, help="adam: learning rate")
 parser.add_argument("--b1", type=float, default=0.5, help="adam: decay of first order momentum of gradient")
 parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of first order momentum of gradient")
 parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
 parser.add_argument("--latent_dim", type=int, default=100, help="dimensionality of the latent space")
 parser.add_argument("--img_size", type=int, default=128, help="size of each image dimension")
-parser.add_argument("--channels", type=int, default=1, help="number of image channels")
-parser.add_argument("--sample_interval", type=int, default=20, help="interval between image sampling")
+parser.add_argument("--channels", type=int, default=3, help="number of image channels")
+parser.add_argument("--sample_interval", type=int, default=100, help="interval between image sampling")
 opt = parser.parse_args()
 print(opt)
 
 cuda = True if torch.cuda.is_available() else False
+
 
 def weights_init_normal(m):
     classname = m.__class__.__name__
@@ -73,6 +70,7 @@ class Generator(nn.Module):
         img = self.conv_blocks(out)
         return img
 
+
 class Discriminator(nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
@@ -101,31 +99,6 @@ class Discriminator(nn.Module):
 
         return validity
 
-'''class Discriminator(nn.Module):
-    def __init__(self):
-        super(Discriminator, self).__init__()
-
-        # Upsampling
-        self.down = nn.Sequential(nn.Conv2d(opt.channels, 64, 3, 2, 1), nn.ReLU())
-        # Fully-connected layers
-        self.down_size = opt.img_size // 2
-        down_dim = 64 * (opt.img_size // 2) ** 2
-        self.fc = nn.Sequential(
-            nn.Linear(down_dim, 32),
-            nn.BatchNorm1d(32, 0.8),
-            nn.ReLU(inplace=True),
-            nn.Linear(32, down_dim),
-            nn.BatchNorm1d(down_dim),
-            nn.ReLU(inplace=True),
-        )
-        # Upsampling
-        self.up = nn.Sequential(nn.Upsample(scale_factor=2), nn.Conv2d(64, opt.channels, 3, 1, 1))
-
-    def forward(self, img):
-        out = self.down(img)
-        out = self.fc(out.view(out.size(0), -1))
-        out = self.up(out.view(out.size(0), 64, self.down_size, self.down_size))
-        return out'''
 
 # Loss function
 adversarial_loss = torch.nn.BCELoss()
@@ -143,17 +116,13 @@ if cuda:
 generator.apply(weights_init_normal)
 discriminator.apply(weights_init_normal)
 
-
 # Configure data loader
 os.makedirs("data", exist_ok=True)
-
-##
 dataloader = torch.utils.data.DataLoader(
     datasets.ImageFolder(
-        r"C:\Users\ANNA MANI\Desktop\labels_sakshi\lego_ALL_results\LEGO_data",
+        r"D:\Sakshi\Thermal_camera_dataset\ALL_TANKS",
         transform=transforms.Compose(
-            [transforms.Grayscale(num_output_channels=1),transforms.Resize((opt.img_size,opt.img_size)), transforms.ToTensor(),
-             transforms.Normalize([0.5], [0.5])]
+            [transforms.Resize((128,128), interpolation=Image.BILINEAR), transforms.ToTensor(), transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])]
         ),
     ),
     batch_size=opt.batch_size,
@@ -171,12 +140,8 @@ checkpoint_dir = "checkpoints"
 os.makedirs(checkpoint_dir, exist_ok=True)
 
 # define the interval for saving checkpoints
-save_checkpoint_interval = 100
+save_checkpoint_interval = 10
 
-# BEGAN hyper parameters
-#gamma = 0.75
-#lambda_k = 0.001
-#k = 0.0
 # ----------
 #  Training
 # ----------
@@ -205,7 +170,6 @@ for epoch in range(opt.n_epochs):
 
         # Loss measures generator's ability to fool the discriminator
         g_loss = adversarial_loss(discriminator(gen_imgs), valid)
-        #g_loss = torch.mean(torch.abs(discriminator(gen_imgs) - gen_imgs))
 
         g_loss.backward()
         optimizer_G.step()
@@ -220,29 +184,9 @@ for epoch in range(opt.n_epochs):
         real_loss = adversarial_loss(discriminator(real_imgs), valid)
         fake_loss = adversarial_loss(discriminator(gen_imgs.detach()), fake)
         d_loss = (real_loss + fake_loss) / 2
-        
-        #d_real = discriminator(real_imgs)
-        #d_fake = discriminator(gen_imgs.detach())
-        
-        #d_loss_real = torch.mean(torch.abs(d_real - real_imgs))
-        #d_loss_fake = torch.mean(torch.abs(d_fake - gen_imgs.detach()))
-        #d_loss = d_loss_real - k * d_loss_fake
 
         d_loss.backward()
         optimizer_D.step()
-        
-        # ----------------
-        # Update weights
-        # ----------------
-
-        '''diff = torch.mean(gamma * d_loss_real - d_loss_fake)
-
-        # Update weight term for fake samples
-        k = k + lambda_k * diff.item()
-        k = min(max(k, 0), 1)  # Constraint to interval [0, 1]
-
-        # Update convergence metric
-        M = (d_loss_real + torch.abs(diff)).item()'''
 
         print(
             "[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]"
@@ -251,20 +195,28 @@ for epoch in range(opt.n_epochs):
 
         batches_done = epoch * len(dataloader) + i
         if batches_done % opt.sample_interval == 0:
-            save_image(gen_imgs.data[:8], "images/%d.png" % batches_done, nrow=4, normalize=True)
-            
-            
-            
+            save_image(gen_imgs.data[:25], "images/%d.png" % batches_done, nrow=5, normalize=True)
+
+        # Save checkpoints periodically
+        if (epoch + 1) % save_checkpoint_interval == 0:
+            checkpoint_G_path = os.path.join(checkpoint_dir, f"generator_epoch{epoch+1}.pth")
+            checkpoint_D_path = os.path.join(checkpoint_dir, f"discriminator_epoch{epoch+1}.pth")
+
+            # Save generator and discriminator weights
+            torch.save(generator.state_dict(), checkpoint_G_path)
+            torch.save(discriminator.state_dict(), checkpoint_D_path)
+
+            print(f"Saved checkpoint at epoch {epoch+1}: {checkpoint_G_path} and {checkpoint_D_path}")
+
 # Save the final generator and discriminator weights after training
-final_checkpoint_G_path = os.path.join(checkpoint_dir, "G.pth")
-final_checkpoint_D_path = os.path.join(checkpoint_dir, "D.pth")
+final_checkpoint_G_path = os.path.join(checkpoint_dir, "generator_final.pth")
+final_checkpoint_D_path = os.path.join(checkpoint_dir, "discriminator_final.pth")
 torch.save(generator.state_dict(), final_checkpoint_G_path)
 torch.save(discriminator.state_dict(), final_checkpoint_D_path)
+
 print(f"Saved final checkpoints: {final_checkpoint_G_path} and {final_checkpoint_D_path}")
 
 ## Testing of the model
-# Number of images you want to generate for testing
-num_test_samples = 1000
 
 # Load the saved generator checkpoint for testing
 generator.eval()
@@ -272,45 +224,16 @@ generator.load_state_dict(torch.load(final_checkpoint_G_path))
 if cuda:
     generator.cuda()
 
+# Number of images you want to generate for testing
+num_test_samples = 100
+
 # Generate test images
-# Assuming 'test_data_loader' is your DataLoader for the test data
-test_data_loader = torch.utils.data.DataLoader(
-    datasets.ImageFolder(
-        r"C:\Users\ANNA MANI\LEGOshape\New folder\Black&White_LEGO\train",  # Replace with the path to your test data
-        transform=transforms.Compose(
-            [transforms.Resize((128, 128), interpolation=Image.BILINEAR),
-             transforms.ToTensor(),
-             transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])]),
-    ), batch_size=opt.batch_size, shuffle=False,)
+test_noise = Variable(Tensor(np.random.normal(0, 1, (num_test_samples, opt.latent_dim))))
+test_images = generator(test_noise)
 
+# Save the generated test images
 os.makedirs("test_images", exist_ok=True)
+for i in range(num_test_samples):
+    save_image(test_images[i].data, f"test_images/test_image_{i}.png")
 
-# Generate and save test images
-for i, (test_img, _) in enumerate(test_data_loader):
-    if cuda:
-        test_img = Variable(Tensor(np.random.normal(0, 1, (1, opt.latent_dim))))
-        test_img = test_img.cuda()
-        
-    # Generate image from the test input
-    generated_img = generator(test_img)
-
-    # Save the generated image
-    save_image(generated_img.data, f"test_images/generated_image_{i}.png")
-
-print(f"Saved {num_test_samples} generated images to the 'test_images' folder.")
-
-'''# Generate and save test images using the pre-trained generator
-for i, (test_img, _) in enumerate(test_data_loader):
-    # Sample noise as generator input
-    test_noise_single = Variable(Tensor(np.random.normal(0, 1, (1, opt.latent_dim))))
-
-    # Generate image from the random noise
-    generated_img = generator(test_noise_single)
-
-    # Save the generated image
-    save_image(generated_img.data, f"test_images/generated_image_{i}.png")
-
-    if i + 1 == num_test_samples:
-        break  # Stop the loop after generating the desired number of images
-
-print(f"Saved {num_test_samples} generated images to the 'test_images' folder.")'''
+print(f"Saved {num_test_samples} test images to the 'test_images' folder.")
