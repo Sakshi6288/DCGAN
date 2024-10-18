@@ -1,5 +1,3 @@
-#Code for conditional GAN, initially it was written for mnist dataset. then i tried it for generating 1 channel square images. but not #giving good results to i am trying it for 3 channel dataset of cylinders.
-
 import argparse
 import os
 import numpy as np
