@@ -23,7 +23,7 @@ The GANs are implemented on various datasets with specific preprocessing steps s
 - **RGB**: High-resolution color images with detailed textures.
 - **Thermal**: Images representing heat signatures.
 - **Infrared**: Lower spatial resolution, often used for night vision or non-visible spectrum tasks.
-- **Results**: Here I have attached the drive link for the results of the datasets and GANs that I have used so far- https://docs.google.com/presentation/d/1PJ5nNBFok_bX-F9UvrEm7PTF3w4j3POz/edit?usp=sharing&ouid=111933379389103591948&rtpof=true&sd=true
+- **Results**: I have included a drive link with the results from the datasets and GANs I've used so far.- https://docs.google.com/presentation/d/1PJ5nNBFok_bX-F9UvrEm7PTF3w4j3POz/edit?usp=sharing&ouid=111933379389103591948&rtpof=true&sd=true
 
 ### Dataset 
 Each dataset used in this project is publicly available and can be downloaded from sources like Kaggle, depending on your needs. Be sure to adjust the dataset paths in the scripts to match your own directory structure for training your model.
